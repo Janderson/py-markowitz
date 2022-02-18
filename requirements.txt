@@ -1,0 +1,9 @@
+black==22.1.0
+click==8.0.3
+ipdb==0.13.9
+matplotlib==3.5.1
+numpy==1.22.2
+pandas==1.4.1
+pandas-datareader==0.10.0
+PyQt5==5.15.6
+requests==2.27.1
