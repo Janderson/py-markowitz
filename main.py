@@ -4,19 +4,24 @@
 """
 import numpy as np
 import pandas as pd
-import pandas_datareader.data as web
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import ion, show
 import click 
 
+from pandas_datareader import data as pdr
+import yfinance as yfin
 
 
-def run_markowitz(stocks, start_data='01/01/2019'):
+
+
+def run_markowitz(stocks, start_data='2019-01-01'):
+    yfin.pdr_override()
     num_stocks = len(stocks) 
     #download daily price data for each of the stocks in the portfolio
-    data = web.DataReader(stocks,data_source='yahoo',start='01/01/2019')['Adj Close']
+    data = pdr.get_data_yahoo(stocks, start=start_data, end='2024-04-01')
+    closes = data['Adj Close'].reset_index()[stocks]
     #convert daily stock prices into daily returns
-    returns = data.pct_change()
+    returns = closes.pct_change()
     
     #calculate mean daily return and covariance of daily returns
     mean_daily_returns = returns.mean()
@@ -63,16 +68,17 @@ def run_markowitz(stocks, start_data='01/01/2019'):
           f"\n====================\npesos: \n{min_vol_port})")
 
     #create scatter plot coloured by Sharpe Ratio
-    plt.scatter(results_frame.stdev,results_frame.ret,c=results_frame.sharpe,cmap='RdYlBu')
+    plt.scatter(results_frame.stdev, results_frame.ret,c=results_frame.sharpe,cmap='RdYlBu')
     plt.xlabel('Volatility')
     plt.ylabel('Returns')
-    plt.colorbar()
+    #plt.colorbar()
     #plot red star to highlight position of portfolio with highest Sharpe Ratio
     plt.scatter(max_sharpe_port[1],max_sharpe_port[0],marker=(5,1,0),color='r',s=1000)
 
     #plot green star to highlight position of minimum variance portfolio
     plt.scatter(min_vol_port[1],min_vol_port[0],marker=(5,1,0),color='g',s=1000)
-    plt.show()
+    plt.savefig("plot.png")
+    print("salvo plot.png")
 
 
 @click.group()
@@ -81,7 +87,7 @@ def cli():
 
 
 @cli.command("run")
-@click.argument("stocks", default='["BOVA11.SA"]')
+@click.argument("stocks", default='["BOVA11.SA", "DIVO11.SA"]')
 def cmd_run_markowitz(stocks):
     import json
     stocks = json.loads(stocks)
