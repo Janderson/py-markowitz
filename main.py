@@ -14,11 +14,11 @@ import yfinance as yfin
 
 
 
-def run_markowitz(stocks, start_data='2019-01-01'):
+def run_markowitz(stocks, start_date='2019-01-01', end_date='2024-01-01'):
     yfin.pdr_override()
     num_stocks = len(stocks) 
     #download daily price data for each of the stocks in the portfolio
-    data = pdr.get_data_yahoo(stocks, start=start_data, end='2024-04-01')
+    data = pdr.get_data_yahoo(stocks, start=start_date, end=end_date)
     closes = data['Adj Close'].reset_index()[stocks]
     #convert daily stock prices into daily returns
     returns = closes.pct_change()
@@ -77,7 +77,8 @@ def run_markowitz(stocks, start_data='2019-01-01'):
 
     #plot green star to highlight position of minimum variance portfolio
     plt.scatter(min_vol_port[1],min_vol_port[0],marker=(5,1,0),color='g',s=1000)
-    plt.savefig("plot.png")
+    name = "_".join(sorted(stocks))
+    plt.savefig(f"plot_{name}.png")
     print("salvo plot.png")
 
 
@@ -87,11 +88,13 @@ def cli():
 
 
 @cli.command("run")
-@click.argument("stocks", default='["BOVA11.SA", "DIVO11.SA"]')
-def cmd_run_markowitz(stocks):
+@click.argument("stocks", default='BOVA11.SA,DIVO11.SA')
+@click.option("--start_date", default='2019-01-01')
+@click.option("--end_date", default='2024-01-01')
+def cmd_run_markowitz(stocks, start_date, end_date):
     import json
-    stocks = json.loads(stocks)
-    run_markowitz(stocks)
+    stocks = stocks.upper().split(",")
+    run_markowitz(stocks, start_date=start_date, end_date=end_date)
 
 if __name__== "__main__":
     cli()
